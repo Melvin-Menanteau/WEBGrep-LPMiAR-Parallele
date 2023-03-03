@@ -2,6 +2,7 @@ package sujet;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -18,6 +19,8 @@ class WebGrepThread implements Runnable {
 
     public void run() {
         while (true) {
+            // System.out.println("Thread " + num + " - " + nbRunningThreads.get());
+
             if (
                 Main.pages
                 .entrySet()
@@ -46,18 +49,20 @@ class WebGrepThread implements Runnable {
 
             nbRunningThreads.incrementAndGet();
             
-            // Main.stats.put(num, Main.stats.getOrDefault(num, 0) + 1);
+            // // DEBUG
+            // // Main.stats.put(num, Main.stats.getOrDefault(num, 0) + 1);
 
-            if (Main.stats.get(num) == null) Main.stats.put(num, 1);
-            else Main.stats.put(num, Main.stats.get(num) + 1);
+            // if (Main.stats.get(num) == null) Main.stats.put(num, 1);
+            // else Main.stats.put(num, Main.stats.get(num) + 1);
 
-            // System.out.println(
-            //     Main.stats
-            //     .entrySet()
-            //     .stream()
-            //     .sorted(Map.Entry.<Integer, Integer>comparingByKey())
-            //     .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue))
-            // );
+            // // DEBUG
+            // // System.out.println(
+            // //     Main.stats
+            // //     .entrySet()
+            // //     .stream()
+            // //     .sorted(Map.Entry.<Integer, Integer>comparingByKey())
+            // //     .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue))
+            // // );
 
             if (
                 page.printed.get()
@@ -87,10 +92,10 @@ class WebGrepThread implements Runnable {
                                 /* Page is not visited by default */
                                 Page p = Main.pages.putIfAbsent(href, new Page(href, false, false));
 
-                                // 'Debug' - Output
+                                // DEBUG
                                 // if (p != null)
                                 //     System.out.println("Thread " + num + " added: " + href);
-                            } catch (NullPointerException e) {
+                            } catch (Exception e) {
                                 // System.out.println("Thread " + num + " - Error while adding " + href);
                             }
                         }
@@ -99,7 +104,7 @@ class WebGrepThread implements Runnable {
                     e.printStackTrace();
                 }
 
-                System.out.println("Thread " + num + " - " + page.visited.get() + " - " + page.printed.get() + " - " + page.href );
+            //     System.out.println("Thread " + num + " - " + page.visited.get() + " - " + page.printed.get() + " - " + page.href );
 
             }
 

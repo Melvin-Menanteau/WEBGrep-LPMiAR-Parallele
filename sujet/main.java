@@ -1,13 +1,12 @@
 package sujet;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.HashMap;
 
 class Main {
     public static ConcurrentHashMap<String, Page> pages = new ConcurrentHashMap<String, Page>();
     public static ConcurrentHashMap<Integer, Integer> stats = new ConcurrentHashMap<Integer, Integer>();
     public static void main (String args[]) {
-        if(args.length == 0) Tools.initialize("-cTl --threads=100 Nantes https://fr.wikipedia.org/wiki/Nantes");
+        if(args.length == 0) Tools.initialize("-cTl --threads=1 Nantes https://fr.wikipedia.org/wiki/Nantes");
 		else Tools.initialize(args);
 
         Main.pages.put("https://fr.wikipedia.org/wiki/Nantes", new Page("https://fr.wikipedia.org/wiki/Nantes", false, false));
