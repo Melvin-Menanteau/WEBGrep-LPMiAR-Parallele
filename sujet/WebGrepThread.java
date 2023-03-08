@@ -64,9 +64,11 @@ class WebGrepThread implements Runnable {
             // //     .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue))
             // // );
 
+            // System.out.println("Thread " + num + " - " + page.href + " - Printed: " + page.printed.get() + " - Visited: " + page.visited.get() + " - PrintLock: " + printLock.isLocked());
+
             if (
-                page.printed.get()
-                && page.visited.get()
+                !page.printed.get()
+                && page.parsed.get()
                 && printLock.tryLock()
             ) {
                 System.out.println("Thread " + num + " - Printing: " + page.href);
@@ -79,7 +81,7 @@ class WebGrepThread implements Runnable {
             }
             /* Si la page n'a pas été visitée */
             else if (page.visited.compareAndSet(false, true)) {
-                // System.out.println("Thread " + num + " - Visiting: " + page.href);
+                System.out.println("Thread " + num + " - Visiting: " + page.href);
                 try {
                     page.parsedPage = Tools.parsePage(page.href);
 
@@ -90,7 +92,7 @@ class WebGrepThread implements Runnable {
                         for (String href : page.parsedPage.hrefs()) {
                             try {
                                 /* Page is not visited by default */
-                                Page p = Main.pages.putIfAbsent(href, new Page(href, false, false));
+                                Page p = Main.pages.putIfAbsent(href, new Page(href, false, false, false));
 
                                 // DEBUG
                                 // if (p != null)
@@ -100,6 +102,8 @@ class WebGrepThread implements Runnable {
                             }
                         }
                     }
+
+                    page.parsed.compareAndSet(false, true);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
