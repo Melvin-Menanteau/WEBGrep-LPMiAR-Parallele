@@ -82,11 +82,7 @@ class WebGrepThread implements Runnable {
                         for (String href : page.parsedPage.hrefs()) {
                             try {
                                 /* Par défaut, la page n'est ni visitée, ni parcourue, ni imprimée */
-                                Page p = Main.pages.putIfAbsent(href, new Page(href, false, false, false));
-
-                                // DEBUG
-                                // if (p != null)
-                                //     System.out.println("Thread " + num + " added: " + href);
+                                Main.pages.putIfAbsent(href, new Page(href, false, false, false));
                             } catch (Exception e) {
                                 // DEBUG
                                 // System.out.println("Thread " + num + " - Error while adding " + href);
