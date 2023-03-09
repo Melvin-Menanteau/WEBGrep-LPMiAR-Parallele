@@ -1,16 +1,14 @@
 package sujet;
 
-import java.io.IOException;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 class WebGrepThread implements Runnable {
     private static AtomicInteger nbRunningThreads = new AtomicInteger(0);
     private static ReentrantLock printLock = new ReentrantLock();
+    // DEBUG
     private int num;
 
     public WebGrepThread(int num) {
@@ -19,8 +17,11 @@ class WebGrepThread implements Runnable {
 
     public void run() {
         while (true) {
-            // System.out.println("Thread " + num + " - " + nbRunningThreads.get());
 
+            /*
+            Par défaut, les threads tournent en permanence en attente d'une nouvelle page à visiter ou imprimer.
+            Si toutes les pages ont été visitées et imprimées, et qu'aucun thread n'est en cours d'exécution, on sort de la boucle.
+            */
             if (
                 Main.pages
                 .entrySet()
@@ -47,31 +48,19 @@ class WebGrepThread implements Runnable {
 
             if (page == null) continue;
 
+            /* Incrementer le compteur de threads en cours, les autres threads auront ainsi un moyen de savoir si de nouvelles pages peuvent se rajouter à la liste */
             nbRunningThreads.incrementAndGet();
-            
-            // // DEBUG
-            // // Main.stats.put(num, Main.stats.getOrDefault(num, 0) + 1);
-
-            // if (Main.stats.get(num) == null) Main.stats.put(num, 1);
-            // else Main.stats.put(num, Main.stats.get(num) + 1);
-
-            // // DEBUG
-            // // System.out.println(
-            // //     Main.stats
-            // //     .entrySet()
-            // //     .stream()
-            // //     .sorted(Map.Entry.<Integer, Integer>comparingByKey())
-            // //     .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue))
-            // // );
 
             // System.out.println("Thread " + num + " - " + page.href + " - Printed: " + page.printed.get() + " - Visited: " + page.visited.get() + " - PrintLock: " + printLock.isLocked());
 
+            /* Si la page n'a pas été imprimée, et qu'elle a été visitée, et que le lock d'impression est libre, on l'imprime */
             if (
                 !page.printed.get()
                 && page.parsed.get()
                 && printLock.tryLock()
             ) {
-                System.out.println("Thread " + num + " - Printing: " + page.href);
+                // DEBUG
+                // System.out.println("Thread " + num + " - Printing: " + page.href);
                 try {
                     if (page.printed.compareAndSet(false, true))
                         Tools.print(page.parsedPage);
@@ -79,25 +68,27 @@ class WebGrepThread implements Runnable {
                     printLock.unlock();
                 }
             }
-            /* Si la page n'a pas été visitée */
+            /* Si la page n'a pas été visitée, on la visite */
             else if (page.visited.compareAndSet(false, true)) {
-                System.out.println("Thread " + num + " - Visiting: " + page.href);
+                // DEBUG
+                // System.out.println("Thread " + num + " - Visiting: " + page.href);
                 try {
                     page.parsedPage = Tools.parsePage(page.href);
 
                     if (!page.parsedPage.hrefs().isEmpty()) {
-                        /* Remove empty links and # (self) hrefs */
+                        /* Retirer les pages qui font référence à elles-mêmes pour ne pas parcourir la même page plusieurs fois */
                         page.parsedPage.hrefs().removeIf(s -> s.equals("") || s.contains("#"));
 
                         for (String href : page.parsedPage.hrefs()) {
                             try {
-                                /* Page is not visited by default */
+                                /* Par défaut, la page n'est ni visitée, ni parcourue, ni imprimée */
                                 Page p = Main.pages.putIfAbsent(href, new Page(href, false, false, false));
 
                                 // DEBUG
                                 // if (p != null)
                                 //     System.out.println("Thread " + num + " added: " + href);
                             } catch (Exception e) {
+                                // DEBUG
                                 // System.out.println("Thread " + num + " - Error while adding " + href);
                             }
                         }
@@ -108,10 +99,9 @@ class WebGrepThread implements Runnable {
                     e.printStackTrace();
                 }
 
-            //     System.out.println("Thread " + num + " - " + page.visited.get() + " - " + page.printed.get() + " - " + page.href );
-
             }
 
+            /* Décrementer le compteur de threads actif */
             nbRunningThreads.decrementAndGet();
         }
     }
