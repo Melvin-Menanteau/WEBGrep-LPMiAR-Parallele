@@ -1,5 +1,7 @@
 # Projet de programmation concurrente Java <br> Recherche d’expressions régulières sur le Web
 
+##### AUGER-DUBOIS Benoît - GUILLET Nathan - MENANTEAU Melvin
+
 ## Problèmes liés à la concurrence
 
 Plusieurs problèmes liés à la gestion de la concurrence se sont présentés durant le développement de ce projet.
