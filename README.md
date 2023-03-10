@@ -32,6 +32,8 @@ Dans un but d'optimiser légérement ce programme, nous avons jugés qu'avec l'i
 
 ## Générer et exécuter le projet
 
+#### SDK 17
+
 ```java
 javac -d "build" -cp "./;./lib/*" .\sujet\Main.java
 java -classpath "./build/;./lib/*" sujet.Main [args]
